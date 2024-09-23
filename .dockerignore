@@ -1,0 +1,9 @@
+.git
+*.pyc
+**/__pycache__
+**/venv
+**/data
+.env*
+docker-compose*
+Dockerfile
+.gitlab-ci.yml

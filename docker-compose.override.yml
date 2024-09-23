@@ -1,0 +1,33 @@
+services:
+  nginx:
+    image: ${DOCKER_PROJECT}:nginx-latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-nginx
+    environment:
+      NGINX_SERVER_NAME: localhost
+    ports:
+      - "20002:80"
+
+  web:
+    image: ${DOCKER_PROJECT}:web-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+#    user: root
+    entrypoint: /docker/web-entrypoint.sh
+    restart: always
+    volumes:
+      - ./:/server_code
+      - ./docker:/docker
+    ports:
+      - '0.0.0.0:20005:8080'
+#    deploy:
+#      replicas: 2
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [gpu]

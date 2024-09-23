@@ -1,0 +1,16 @@
+FROM nginx:1.23.2 AS base
+
+RUN apt-get update && apt-get install -y apache2-utils nano
+
+FROM base AS build
+COPY ./docker/nginx-create-user.sh /docker-entrypoint.d/40-create-user.sh
+COPY ./docker/nginx-evaluate-template.sh /docker-entrypoint.d/50-evaluate-template.sh
+COPY ./docker/etc/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/etc/nginx/conf.d/site.conf.template /etc/nginx/conf.d/site.conf.template
+
+RUN mkdir -p /etc/nginx/sites-enabled && chmod 744 /docker-entrypoint.d/40-create-user.sh &&  \
+    chmod 744 /docker-entrypoint.d/50-evaluate-template.sh && \
+    groupadd -g 1001 web && useradd -u 1001 -g web web-master && \
+    mkdir -p /static && chown -R 1001:1001 /static
+
+HEALTHCHECK --timeout=10s --retries=20 CMD curl --fail "http://localhost/sycFDpgHR49GPoh4" || exit 1

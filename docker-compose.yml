@@ -1,0 +1,50 @@
+networks:
+  compose-network:
+    driver: bridge
+
+volumes:
+  local_volume:
+    name: ${DOCKER_PROJECT}_local_volume
+
+
+services:
+  nginx:
+    restart: unless-stopped
+    environment:
+      NGINX_USER: ${NGINX_USER}
+      NGINX_PASSWORD: ${NGINX_PASSWORD}
+      NGINX_WEB_HOST: web
+      NGINX_WEB_PORT: 8080
+      STATIC_ROOT: /static
+      MEDIA_ROOT: /home/media
+    networks:
+      - compose-network
+    volumes:
+      - local_volume:/home/media:ro
+    depends_on:
+      web:
+        condition: service_healthy
+
+  web:
+    tmpfs:
+      - /tmp
+    networks:
+      - compose-network
+    volumes:
+      - local_volume:/home/python-master/media
+    environment:
+      LC_ALL: C.UTF-8
+      LANG: C.UTF-8
+      APP_ENV: ${ENV-:prod}
+#      ROOT_PATH:
+      UVICORN_HOST: web
+      UVICORN_APP: connectinno.entrypoints.asgi:app
+      GUNICORN_LOGGER: corelib.web.logger.GunicornLogger
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${DOCKER_PROJECT}
+      API_KEY: ${API_KEY:-"SUPER_SECRET_KEY_SHA256"}
+      ACTIVATE_AUTHORIZATION: ${ACTIVATE_AUTHORIZATION:-0}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      RPC_MODE: caller
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+      SQL_DB_URL: ${SQL_DB_URL}
